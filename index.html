@@ -575,6 +575,9 @@
     </div>
     
     <footer id="page-footer">
+        <div id="ping-display" style="display: none; position: absolute; left: 30px; font-size: 16px; color: #aaa;">
+            <span>Ping: <span id="ping-value">--</span> ms</span>
+        </div>
         <div class="footer-credits">
             <span>Developed by:</span>
             <a href="https://x.com/7nds_" target="_blank">7n</a>
@@ -640,7 +643,9 @@
     let gameStateInterval; 
     let lastPongReceived = 0;
     let lastPingReceived = 0;
-let clientHeartbeatInterval;
+    let clientHeartbeatInterval;
+    let pingStartTime = 0;
+    let currentPing = 0;
     const HEARTBEAT_TIMEOUT = 5000;
     const PING_INTERVAL = 2000;
     const SYNC_RATE = 50; 
@@ -729,12 +734,13 @@ let clientHeartbeatInterval;
             return;
         }
         
+        pingStartTime = Date.now();
         sendData({ type: 'ping' });
     }
 
     const handleDisconnect = () => {
         if (!conn) { return; }
-        
+        document.getElementById('ping-display').style.display = 'none';
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         if (gameStateInterval) clearInterval(gameStateInterval);
         if (clientHeartbeatInterval) clearInterval(clientHeartbeatInterval);
@@ -777,7 +783,11 @@ let clientHeartbeatInterval;
             break;
 
             case 'pong':
-                if (isHost) lastPongReceived = Date.now();
+                if (isHost) {
+                    lastPongReceived = Date.now();
+                    currentPing = Date.now() - pingStartTime;
+                    document.getElementById('ping-value').textContent = currentPing;
+                }
                 break;
 
             case 'player_input':
@@ -812,6 +822,9 @@ let clientHeartbeatInterval;
 
             case 'game_state_update':
                 if (!isHost) {
+                    if (data.ping) {
+                        document.getElementById('ping-value').textContent = data.ping;
+                    }
                     for (let i = 0; i < data.pieces.length; i++) {
                         if (pieces[i]) {
                             if (pieces[i].x === undefined) {
@@ -951,6 +964,7 @@ let clientHeartbeatInterval;
     function startGame() {
         if (gameHasStarted) return;
         gameHasStarted = true;
+        document.getElementById('ping-display').style.display = 'block';
         lobbyContainer.style.display = 'none';
         gameWrapper.style.display = 'flex';
         
@@ -968,13 +982,14 @@ let clientHeartbeatInterval;
             gameStateInterval = setInterval(() => {
                 if (!gameStarted || !conn || !conn.open) return;
                 const gameState = {
-                    type: 'game_state_update',
-                    pieces: pieces.map(p => ({ x: p.x, y: p.y })),
-                    ball: { x: ball.x, y: ball.y, angle: ball.angle },
-                    shadows: shadows,
-                    ballShadows: ballShadows
-                };
-                sendData(gameState);
+                            type: 'game_state_update',
+                            pieces: pieces.map(p => ({ x: p.x, y: p.y })),
+                            ball: { x: ball.x, y: ball.y, angle: ball.angle },
+                            shadows: shadows,
+                            ballShadows: ballShadows,
+                            ping: currentPing
+                        };
+            sendData(gameState);
             }, SYNC_RATE);
         } else {
             lastPingReceived = Date.now();
