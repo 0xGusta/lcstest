@@ -1,0 +1,1854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+
+    <meta name="description" content="Lil Chogstars themed multiplayer soccer game">
+    <meta name="theme-color" content="#8a2be2">
+
+    <meta property="og:title" content="Lil Chogstars Cup">
+    <meta property="og:description" content="Lil Chogstars themed multiplayer soccer game">
+    <meta property="og:image" content="https://lilchogstarscup.vercel.app/images/metadata.png">
+    <meta property="og:url" content="https://lilchogstarscup.vercel.app/">
+    <meta property="og:type" content="website">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Lil Chogstars Cup">
+    <meta name="twitter:description" content="Lil Chogstars themed multiplayer soccer game">
+    <meta name="twitter:image" content="https://lilchogstarscup.vercel.app/images/metadata.png">
+    <meta name="twitter:creator" content="@7nds_">
+
+    <title>Lil Chogstars Cup</title>
+    <link rel="icon" type="image/png" href="images/favicon.ico">
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #120c18;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(100vh) scale(0.8); opacity: 0; }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% { transform: translateY(-100vh) scale(1.2); opacity: 0; }
+        }
+        #animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0.1;
+            overflow: hidden;
+        }
+        .bg-ball {
+            position: absolute;
+            bottom: -150px;
+            background-size: cover;
+            border-radius: 50%;
+            animation: float-up 20s linear infinite;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        #lobby-container {
+            position: relative;
+            z-index: 2;
+            background: rgba(24, 21, 29, 0.75);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            padding: 35px;
+            border-radius: 24px;
+            width: 450px;
+            max-width: 90vw;
+            text-align: center;
+            color: #f0f0f0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        .lobby-header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: #fff;
+        }
+        .lobby-header p {
+            font-size: 16px;
+            color: #a0a0a0;
+            margin-top: 4px;
+        }
+        .game-mode-selector {
+            margin: 25px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 500;
+            color: #ccc;
+        }
+        #real-time-mode-checkbox {
+            transform: scale(1.2);
+            accent-color: #8a2be2;
+        }
+        .separator {
+            margin: 15px 0;
+            font-weight: 600;
+            color: #888;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        #room-id-input, #room-id-display {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid #444;
+            background-color: #222;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            text-align: center;
+        }
+        #room-id-display {
+            background-color: #1a1a1a;
+            cursor: default;
+        }
+        .lobby-button {
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: white;
+        }
+
+        .lobby-button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.5;
+        }
+
+        .lobby-button:disabled:hover {
+            background-color: #555;
+        }
+
+        .lobby-button.primary {
+            width: 100%;
+            background-color: #8a2be2;
+            box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+        }
+
+        .lobby-button.primary:hover {
+            background-color: #7b25c9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(138, 43, 226, 0.4);
+        }
+
+        .setting-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            color: #ccc;
+            font-weight: 500;
+        }
+
+        .setting-group label {
+            font-size: 16px;
+        }
+
+        .setting-group input[type="number"] {
+            width: 70px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background-color: #222;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .setting-group input:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        #join-room-btn, #copy-id-btn {
+            background-color: #333;
+            border: 1px solid #555;
+        }
+
+        #join-room-btn:hover, #copy-id-btn:hover {
+            background-color: #444;
+            border-color: #777;
+        }
+
+        #lobby-status, #waiting-status {
+            margin-top: 20px;
+            font-weight: 500;
+            min-height: 24px;
+            color: #aaa;
+        }
+
+        #waiting-status {
+            color: #44ffff;
+        }
+
+        #goals-to-win-display {
+            color: #ccc;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 50vw;
+            max-width: 1800px;
+            aspect-ratio: 1800 / 1080;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.08);
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            display: block;
+            margin: 0;
+            border-radius: 30px;
+            border: none;
+            cursor: url('images/cursor.cur'), pointer;
+            filter: drop-shadow(0 0 10px rgba(138, 43, 226, 0.7));
+        }
+
+        #goal-display { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            font-size: 7vw;
+            font-weight: 800; 
+            color: #ffffff; 
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.4); 
+            opacity: 0; 
+            pointer-events: none; 
+            z-index: 1000; 
+            white-space: nowrap; 
+            padding: 1vw 2vw;
+            background: rgba(0, 0, 0, 0.7); 
+            border-radius: 1.5vw;
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            letter-spacing: -1px; 
+            transition: opacity 0.4s ease-in-out; 
+        }
+
+        #score-display { 
+            position: absolute; 
+            top: 1vh;
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(3px); 
+            -webkit-backdrop-filter: blur(3px); 
+            padding: 0.8vw 1.5vw;
+            border-radius: 1.2vw;
+            font-size: 1vw;
+            font-weight: 700; 
+            color: #ffffff; 
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+            z-index: 999; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05) inset; 
+            white-space: nowrap; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; 
+        }
+
+        #victory-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            z-index: 2000;
+            transition: opacity 0.5s ease-out;
+        }
+
+        #victory-screen.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        #victory-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 500px;
+            max-width: 90vw;
+            color: #1c1c1e;
+            opacity: 0;
+            transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1),
+                        opacity 0.8s ease-in;
+            transform: translateY(50px);
+        }
+
+        #victory-screen.active #victory-card {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #victory-card h2 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .victory-message {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 25px;
+        }
+
+        .red-team-winner {
+            color: #e61414;
+        }
+
+        .blue-team-winner {
+            color: #1a73e8;
+        }
+
+        #play-again-button {
+            width: 100%;
+            background-color: #007aff;
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 122, 255, 0.1);
+            margin-top: 30px;
+        }
+
+        #turn-indicator {
+            --turn-color: #ff4444;
+            position: absolute;
+            top: 1vh;
+            left: 1.5vw;
+            width: 12vw;
+            height: 2vw;
+            padding-left: 1.2vw;
+            padding-right: 1vw;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 1.2vw;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05) inset;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            font-size: 1vw;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 5px rgba(0,0,0,0.8);
+            letter-spacing: 0.5px;
+            z-index: 1000;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease-in-out;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        }
+
+        #turn-indicator.active {
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+        }
+        #turn-indicator .timer-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: var(--turn-color);
+            border-radius: 15px;
+            opacity: 0.5;
+            transition: width 0.2s linear;
+        }
+        #turn-indicator .turn-text {
+            position: relative;
+            z-index: 10;
+        }
+        #turn-indicator.blue {
+            --turn-color: #44ffff;
+        }
+
+        #page-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 30px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(15, 15, 15, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 12px 0;
+            text-align: center;
+            z-index: 5000;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        .footer-credits {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .sound-button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+            padding: 5px;
+        }
+
+        .sound-button:hover {
+            opacity: 1;
+        }
+
+        .sound-button .sound-off-icon {
+            display: none;
+        }
+
+        .sound-button.sound-off .sound-on-icon {
+            display: none;
+        }
+
+        .sound-button.sound-off .sound-off-icon {
+            display: block;
+        }
+
+        #page-footer span {
+            color: #aaa;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        #page-footer a {
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            text-decoration: none;
+            margin: 0 10px;
+            transition: color 0.2s ease;
+        }
+        #page-footer a:hover {
+            color: #8a2be2;
+        }
+
+        #game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #controls-info {
+            margin-top: 20px;
+            color: #a0a0a0;
+            font-size: 14px;
+            line-height: 1.6;
+            text-align: center;
+        }
+        #controls-info p {
+            margin: 0;
+        }
+        #controls-info strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="animated-bg"></div>
+
+    <div id="lobby-container">
+        <div class="lobby-header">
+            <h1>Lil Chogstars Cup</h1>
+        </div>
+        
+        <div class="game-mode-selector">
+            <input type="checkbox" id="real-time-mode-checkbox">
+            <label for="real-time-mode-checkbox">Real-Time Mode (No Turns)</label>
+        </div>
+
+        <div id="lobby-main-view">
+            <button id="create-room-btn" class="lobby-button primary">Create Room</button>
+            <div class="separator">or</div>
+            <div class="input-group">
+                <input type="text" id="room-id-input" placeholder="Enter Room ID">
+                <button id="join-room-btn" class="lobby-button">Join</button>
+            </div>
+        </div>
+
+        <div id="lobby-waiting-view" style="display: none;">
+            <h2>Share this ID with your friend</h2>
+            <div class="input-group">
+                <input type="text" id="room-id-display" readonly>
+                <button id="copy-id-btn" class="lobby-button">Copy</button>
+            </div>
+
+            <div class="setting-group">
+                <label for="goals-to-win-input">Goals to Win:</label>
+                <input type="number" id="goals-to-win-input" value="5" min="1" max="99">
+            </div>
+            
+            <p id="waiting-status">Waiting for opponent to connect, when another player connects you will no longer be able to configure the goals and mode...</p>
+            
+            <button id="start-game-btn" class="lobby-button primary" disabled style="margin-top: 15px;">Start Game</button>
+        </div>
+        
+        <p id="lobby-status"></p>
+    </div>
+    <div id="game-wrapper" style="display: none;">
+            <p id="goals-to-win-display"></p>
+            <div id="game-container">   
+                <div id="turn-indicator">
+                    <div class="timer-bar"></div>
+                    <span class="turn-text"></span>
+                </div>
+                <canvas height="1080" id="gameCanvas" width="1800"></canvas>
+                <div id="countdown-display"></div>
+                <div id="goal-display">GOAL!</div>
+                <div id="score-display"></div>
+            </div>
+            <div id="controls-info">
+                <p><strong>Click and drag to aim | Press [Space] to cancel aim.</strong> </p>
+            </div>
+    </div>
+
+    <div id="victory-screen">
+        <div id="victory-card">
+            <h2>Game Over</h2>
+            <p class="victory-message" id="victory-message"></p>
+            <button id="play-again-button">Play Again (Host Only)</button>
+        </div>
+    </div>
+    
+    <footer id="page-footer">
+        <div class="footer-credits">
+            <span>Developed by:</span>
+            <a href="https://x.com/7nds_" target="_blank">7n</a>
+            &
+            <a href="https://x.com/0xGustavo" target="_blank">0xGus</a>
+        </div>
+
+        <button id="sound-toggle-btn" class="sound-button" title="Toggle Sound">
+            <span class="sound-on-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+            </span>
+            <span class="sound-off-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+            </span>
+        </button>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+    const lobbyMainView = document.getElementById('lobby-main-view');
+    const lobbyWaitingView = document.getElementById('lobby-waiting-view');
+    const roomIdDisplay = document.getElementById('room-id-display');
+    const copyIdBtn = document.getElementById('copy-id-btn');
+    const waitingStatus = document.getElementById('waiting-status');
+    
+    function generateAnimatedBalls() {
+        const bg = document.getElementById('animated-bg');
+        const allImages = [...redPlayerImages, ...bluePlayerImages];
+        const ballCount = 30;
+
+        for (let i = 0; i < ballCount; i++) {
+            const ball = document.createElement('div');
+            ball.className = 'bg-ball';
+            
+            const size = Math.random() * 80 + 20;
+            const randomImage = allImages[Math.floor(Math.random() * allImages.length)];
+
+            ball.style.width = `${size}px`;
+            ball.style.height = `${size}px`;
+            ball.style.left = `${Math.random() * 100}vw`;
+            ball.style.backgroundImage = `url(${randomImage})`;
+            
+            const duration = Math.random() * 15 + 10;
+            const delay = Math.random() * 10;
+            
+            ball.style.animationDuration = `${duration}s`;
+            ball.style.animationDelay = `${delay}s`;
+
+            bg.appendChild(ball);
+        }
+    }
+
+    let peer;
+    let conn;
+    let myPeerId;
+    let isHost = false;
+    let gameHasStarted = false;
+    let isMuted = false;
+    let gameMode = 'turn-based';
+
+    let heartbeatInterval;
+    let gameStateInterval; 
+    let lastPongReceived = 0;
+    let lastPingReceived = 0;
+let clientHeartbeatInterval;
+    const HEARTBEAT_TIMEOUT = 5000;
+    const PING_INTERVAL = 2000;
+    const SYNC_RATE = 50; 
+
+    const lobbyContainer = document.getElementById('lobby-container');
+    const createRoomBtn = document.getElementById('create-room-btn');
+    const joinRoomBtn = document.getElementById('join-room-btn');
+    const roomIdInput = document.getElementById('room-id-input');
+    const lobbyStatus = document.getElementById('lobby-status');
+    const gameContainer = document.getElementById('game-container');
+    const realTimeModeCheckbox = document.getElementById('real-time-mode-checkbox');
+    const startGameBtn = document.getElementById('start-game-btn');
+    const gameModeSelector = document.querySelector('.game-mode-selector');
+    const goalsToWinDisplay = document.getElementById('goals-to-win-display');
+    const gameWrapper = document.getElementById('game-wrapper');
+
+    function initializePeer() {
+
+        const webrtcConfig = {
+        iceServers: [
+            {
+                urls: "stun:stun.relay.metered.ca:80",
+            },
+            {
+                urls: "turn:standard.relay.metered.ca:80",
+                username: "2974d7f318ad9202bbb673da",
+                credential: "MDLWNLAVsijzhLVO",
+            },
+            {
+                urls: "turn:standard.relay.metered.ca:80?transport=tcp",
+                username: "2974d7f318ad9202bbb673da",
+                credential: "MDLWNLAVsijzhLVO",
+            },
+            {
+                urls: "turn:standard.relay.metered.ca:443",
+                username: "2974d7f318ad9202bbb673da",
+                credential: "MDLWNLAVsijzhLVO",
+            },
+            {
+                urls: "turns:standard.relay.metered.ca:443?transport=tcp",
+                username: "2974d7f318ad9202bbb673da",
+                credential: "MDLWNLAVsijzhLVO",
+            },
+        ]
+        };
+
+        peer = new Peer(undefined, {
+            config: webrtcConfig
+        });
+
+        peer.on('open', id => {
+            myPeerId = id;
+            console.log('My Peer ID is: ' + myPeerId);
+            lobbyStatus.textContent = 'Ready to create or join a room.';
+        });
+
+        peer.on('connection', connection => {
+            if (conn) { connection.close(); return; }
+            console.log('A player has connected!');
+            conn = connection;
+            isHost = true;
+
+            setupConnectionHandlers();
+
+            conn.on('open', () => {
+                waitingStatus.textContent = 'Opponent connected! Ready to start.';
+                startGameBtn.disabled = false;
+                
+                realTimeModeCheckbox.disabled = true;
+                document.getElementById('goals-to-win-input').disabled = true;
+            });
+        });
+
+        peer.on('error', err => {
+            console.error(err);
+            lobbyStatus.textContent = `Error: ${err.message}. Please try refreshing the page.`;
+        });
+    }
+
+    function checkConnection() {
+        if (!isHost || !conn) return;
+
+        if (Date.now() - lastPongReceived > HEARTBEAT_TIMEOUT) {
+            console.log('Heartbeat timeout: Client not responding.');
+            handleDisconnect();
+            return;
+        }
+        
+        sendData({ type: 'ping' });
+    }
+
+    const handleDisconnect = () => {
+        if (!conn) { return; }
+        
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        if (gameStateInterval) clearInterval(gameStateInterval);
+        if (clientHeartbeatInterval) clearInterval(clientHeartbeatInterval);
+        conn = null; 
+        
+        alert("The other player has disconnected. The match is over.");
+        location.reload();
+    };
+
+    function setupConnectionHandlers() {
+        conn.on('data', handleReceivedData);
+        conn.on('close', handleDisconnect);
+        conn.on('error', (err) => {
+            console.error('PeerJS connection error:', err);
+            handleDisconnect();
+        });
+    }
+
+    function sendData(data) {
+        if (conn && conn.open) {
+            conn.send(data);
+        }
+    }
+
+    function handleReceivedData(data) {
+        switch (data.type) {
+            case 'start_signal':
+                gameMode = data.mode;
+                if (data.goals) {
+                    maxGoals = data.goals;
+                }
+                startGame();
+                break;
+
+            case 'ping':
+            if (!isHost) {
+                lastPingReceived = Date.now();
+                sendData({ type: 'pong' });
+            }
+            break;
+
+            case 'pong':
+                if (isHost) lastPongReceived = Date.now();
+                break;
+
+            case 'player_input':
+                if (isHost) {
+                    turnChangeSent = false;
+                    const pieceToMove = pieces[data.pieceIndex];
+                    if (pieceToMove) {
+                        const powerMultiplier = 0.66;
+                        const vx = data.dragVector.dx * powerMultiplier;
+                        const vy = data.dragVector.dy * powerMultiplier;
+                        pieceToMove.vx = vx;
+                        pieceToMove.vy = vy;
+                        allPiecesStopped = false;
+
+                    }
+                }
+                break;
+
+            case 'turn_change':
+                cancelAiming();
+                currentPlayerTurn = data.nextTurn;
+                allPiecesStopped = true;
+                turnChangeSent = true;
+                startTurnTimer();
+                break;
+
+            case 'timeout':
+                cancelAiming();
+                currentPlayerTurn = data.nextTurn;
+                startTurnTimer();
+                break;
+
+            case 'game_state_update':
+                if (!isHost) {
+                    for (let i = 0; i < data.pieces.length; i++) {
+                        if (pieces[i]) {
+                            if (pieces[i].x === undefined) {
+                                pieces[i].x = data.pieces[i].x;
+                                pieces[i].y = data.pieces[i].y;
+                            }
+                            pieces[i].targetX = data.pieces[i].x;
+                            pieces[i].targetY = data.pieces[i].y;
+                        }
+                    }
+                    if (ball.x === 0) {
+                        ball.x = data.ball.x;
+                        ball.y = data.ball.y;
+                    }
+                    ball.targetX = data.ball.x;
+                    ball.targetY = data.ball.y;
+                    ball.targetAngle = data.ball.angle;
+                    
+                    shadows = data.shadows;
+                    ballShadows = data.ballShadows;
+                }
+                break;
+
+            case 'play_sound':
+                if (data.sound === 'collision') {
+                    clickSound.currentTime = 0;
+                    clickSound.play();
+                }
+                break;
+
+            case 'goal':
+                backgroundMusic.pause();
+                goalSound.currentTime = 0;
+                goalSound.play();
+
+                scoreRed = data.score.red;
+                scoreBlue = data.score.blue;
+                lastGoalScorer = data.lastScorer;
+                goalGlow.active = true; goalGlow.alpha = 1; goalGlow.team = lastGoalScorer;
+                fieldGlow.active = true; fieldGlow.alpha = 1;
+                updateScoreDisplay();
+                showGoalAnimation();
+                initPieces();
+                if (data.isGameOver) {
+                    showVictoryScreen(data.winner);
+                    gameStarted = false;
+                    if (gameMode === 'turn-based') turnIndicator.classList.remove('active');
+                    if (heartbeatInterval) clearInterval(heartbeatInterval);
+                    if (gameStateInterval) clearInterval(gameStateInterval);
+                    if (clientHeartbeatInterval) clearInterval(clientHeartbeatInterval);
+                } else {
+                    startGameCountdown();
+                }
+                break;
+
+            case 'play_again':
+                hideVictoryScreen();
+                scoreRed = 0; scoreBlue = 0;
+                lastGoalScorer = null;
+                updateScoreDisplay();
+                initPieces();
+                startGameCountdown();
+                
+                if (isHost) {
+
+                    lastPongReceived = Date.now();
+                    heartbeatInterval = setInterval(checkConnection, PING_INTERVAL);
+                    gameStateInterval = setInterval(() => {
+                        if (!gameStarted || !conn || !conn.open) return;
+                        const gameState = {
+                            type: 'game_state_update',
+                            pieces: pieces.map(p => ({ x: p.x, y: p.y })),
+                            ball: { x: ball.x, y: ball.y, angle: ball.angle },
+                            shadows: shadows,
+                            ballShadows: ballShadows
+                        };
+                        sendData(gameState);
+                    }, SYNC_RATE);
+                } else {
+                    lastPingReceived = Date.now();
+                    clientHeartbeatInterval = setInterval(() => {
+                        if (Date.now() - lastPingReceived > HEARTBEAT_TIMEOUT) {
+                            console.log('Host connection timed out during game.');
+                            handleDisconnect();
+                        }
+                    }, PING_INTERVAL);
+
+                }
+                break;
+        }
+    }
+
+    createRoomBtn.onclick = () => {
+        if (!myPeerId) {
+            lobbyStatus.textContent = "Waiting... obtaining room ID.";
+            return;
+        }
+        lobbyMainView.style.display = 'none';
+        lobbyWaitingView.style.display = 'block';
+        roomIdDisplay.value = myPeerId;
+        lobbyStatus.textContent = '';
+    };
+
+    copyIdBtn.onclick = () => {
+        navigator.clipboard.writeText(myPeerId).then(() => {
+            copyIdBtn.textContent = 'Copied!';
+            setTimeout(() => { copyIdBtn.textContent = 'Copy'; }, 2000);
+        });
+    };
+
+    joinRoomBtn.onclick = () => {
+        const roomId = roomIdInput.value.trim();
+        if (!roomId) {
+            lobbyStatus.textContent = 'Please enter a valid Room ID.';
+            return;
+        }
+        lobbyStatus.textContent = `Connecting to room ${roomId}...`;
+        conn = peer.connect(roomId);
+
+        conn.on('open', () => {
+            console.log('Connected to host!');
+            isHost = false;
+            setupConnectionHandlers();
+
+            lobbyMainView.style.display = 'none';
+            gameModeSelector.style.display = 'none';
+            
+            lobbyStatus.textContent = 'Successfully connected! Waiting for host to start the game...';
+            lobbyStatus.style.color = '#44ffff';
+        });
+        
+        conn.on('error', () => {
+             lobbyStatus.textContent = `Failed to connect to room. Please check the ID and try again.`;
+        });
+    };
+
+    function startGame() {
+        if (gameHasStarted) return;
+        gameHasStarted = true;
+        lobbyContainer.style.display = 'none';
+        gameWrapper.style.display = 'flex';
+        
+        goalsToWinDisplay.textContent = `First to ${maxGoals} goals wins!`;
+        goalsToWinDisplay.style.opacity = '1';
+        
+        if (gameMode === 'real-time') {
+            setupRealTimeIndicator();
+        }
+
+        if (isHost) {
+            lastPongReceived = Date.now();
+            heartbeatInterval = setInterval(checkConnection, PING_INTERVAL);
+            
+            gameStateInterval = setInterval(() => {
+                if (!gameStarted || !conn || !conn.open) return;
+                const gameState = {
+                    type: 'game_state_update',
+                    pieces: pieces.map(p => ({ x: p.x, y: p.y })),
+                    ball: { x: ball.x, y: ball.y, angle: ball.angle },
+                    shadows: shadows,
+                    ballShadows: ballShadows
+                };
+                sendData(gameState);
+            }, SYNC_RATE);
+        } else {
+            lastPingReceived = Date.now();
+            clientHeartbeatInterval = setInterval(() => {
+                if (Date.now() - lastPingReceived > HEARTBEAT_TIMEOUT) {
+                    console.log('Host connection timed out during game.');
+                    handleDisconnect();
+                }
+            }, PING_INTERVAL);
+
+        }
+
+        loadAllImages();
+        initPieces();
+        startGameCountdown();
+        loop();
+    }
+
+    initializePeer();
+    
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const baseWidth = 1800;
+    const baseHeight = 1080;
+    canvas.width = baseWidth;
+    canvas.height = baseHeight;
+    const goalDisplay = document.getElementById('goal-display');
+    const scoreDisplay = document.getElementById('score-display');
+    const victoryScreen = document.getElementById('victory-screen');
+    const victoryMessage = document.getElementById('victory-message');
+    const playAgainButton = document.getElementById('play-again-button');
+    const turnIndicator = document.getElementById('turn-indicator');
+    const timerBar = turnIndicator.querySelector('.timer-bar');
+    const turnText = turnIndicator.querySelector('.turn-text');
+    const maxDrag = 195;
+    const friction = 0.90;
+    let pieces = [];
+    let shadows = [];
+    let ballShadows = []; 
+    const maxBallShadows = 200;
+    let rgbHue = 0;
+    const colorChangeSpeed = 5;
+    const radiusPlayer = 30 * 1.5;
+    const radiusBall = 40;
+    let ball = { x: 0, y: 0, vx: 0, vy: 0, radius: radiusBall, color: 'white', angle: 0, angularVelocity: 0, mass: 1 };
+    let scoreRed = 0;
+    let scoreBlue = 0;
+    let maxGoals = 5;
+    const goalWidth = 10;
+    const originalGoalHeight = 300;
+    const goalHeight = originalGoalHeight * 1.10;
+    const wallThickness = 10;
+    let lastGoalScorer = null;
+    let gameStarted = false;
+    let currentPlayerTurn = 0;
+    let allPiecesStopped = true;
+    let turnChangeSent = true;
+    const maxTurnTime = 10;
+    let turnTime = maxTurnTime;
+    let turnTimeStart = 0;
+    let countdownValue = 5;
+    let countdownInterval;
+    let countdownScale = 0;
+    let showCountdown = false;
+    let goalGlow = { active: false, alpha: 0, team: null };
+    let fieldGlow = { active: false, alpha: 0 };
+    const logo = new Image();
+    const soccerBallImage = new Image();
+    const clickSound = new Audio('sounds/ball.mp3');
+    clickSound.volume = 0.5;
+    const backgroundMusic = new Audio('sounds/ambientsound.mp3');
+    backgroundMusic.loop = true;
+
+    const goalSound = new Audio('sounds/goal.mp3');
+    goalSound.volume = 0.6;
+    const redPlayerImages = [ 'images/player1.png', 'images/player2.jpg', 'images/player3.png', 'images/player4.jpg', 'images/player5.png', 'images/player6.png', 'images/player7.png', 'images/player8.png', 'images/player9.png', 'images/player10.png', 'images/player11.png' ];
+    const bluePlayerImages = [ 'images/player12.png', 'images/player13.png', 'images/player14.png', 'images/player15.png', 'images/player16.png', 'images/player17.png', 'images/player18.png', 'images/player19.png', 'images/player20.png', 'images/player21.jpg', 'images/player22.png' ];
+    let redPlayerImageObjects = [];
+    let bluePlayerImageObjects = [];
+    
+    function loadAllImages() {
+    console.log("Starting to load images in the background...");
+
+    redPlayerImages.forEach(url => {
+        const img = new Image();
+        img.src = url;
+        redPlayerImageObjects.push(img);
+    });
+
+    bluePlayerImages.forEach(url => {
+        const img = new Image();
+        img.src = url;
+        bluePlayerImageObjects.push(img);
+    });
+
+    soccerBallImage.src = 'images/ball.png';
+    logo.src = 'images/monad.png';
+}
+
+    function initPieces() {
+        pieces = [];
+        let redImageIndex = 0;
+        let blueImageIndex = 0;
+
+        pieces.push({ x: 100, y: canvas.height / 2, vx: 0, vy: 0, radius: radiusPlayer, team: 0, originalX: 100, originalY: canvas.height / 2, imageIndex: redImageIndex++, mass: 2.5 });
+        pieces.push({ x: 300, y: canvas.height * 0.25, vx: 0, vy: 0, radius: radiusPlayer, team: 0, originalX: 300, originalY: canvas.height * 0.25, imageIndex: redImageIndex++, mass: 2 });
+        pieces.push({ x: 350, y: canvas.height * 0.4,  vx: 0, vy: 0, radius: radiusPlayer, team: 0, originalX: 350, originalY: canvas.height * 0.4, imageIndex: redImageIndex++, mass: 2 });
+        pieces.push({ x: 350, y: canvas.height * 0.6,  vx: 0, vy: 0, radius: radiusPlayer, team: 0, originalX: 350, originalY: canvas.height * 0.6, imageIndex: redImageIndex++, mass: 2 });
+        pieces.push({ x: 300, y: canvas.height * 0.75, vx: 0, vy: 0, radius: radiusPlayer, team: 0, originalX: 300, originalY: canvas.height * 0.75, imageIndex: redImageIndex++, mass: 2 });
+        pieces.push({ x: 550, y: canvas.height * 0.2,  vx: 0, vy: 0, radius: radiusPlayer, team: 0, originalX: 550, originalY: canvas.height * 0.2, imageIndex: redImageIndex++, mass: 2 });
+        pieces.push({ x: 550, y: canvas.height * 0.4,  vx: 0, vy: 0, radius: radiusPlayer, team: 0, originalX: 550, originalY: canvas.height * 0.4, imageIndex: redImageIndex++, mass: 2 });
+        pieces.push({ x: 550, y: canvas.height * 0.6,  vx: 0, vy: 0, radius: radiusPlayer, team: 0, originalX: 550, originalY: canvas.height * 0.6, imageIndex: redImageIndex++, mass: 2 });
+        pieces.push({ x: 550, y: canvas.height * 0.8,  vx: 0, vy: 0, radius: radiusPlayer, team: 0, originalX: 550, originalY: canvas.height * 0.8, imageIndex: redImageIndex++, mass: 2 });
+        pieces.push({ x: 750, y: canvas.height * 0.45, vx: 0, vy: 0, radius: radiusPlayer, team: 0, originalX: 750, originalY: canvas.height * 0.45, imageIndex: redImageIndex++, mass: 2 });
+        pieces.push({ x: 750, y: canvas.height * 0.55, vx: 0, vy: 0, radius: radiusPlayer, team: 0, originalX: 750, originalY: canvas.height * 0.55, imageIndex: redImageIndex++, mass: 2 });
+
+        pieces.push({ x: canvas.width - 100, y: canvas.height / 2, vx: 0, vy: 0, radius: radiusPlayer, team: 1, originalX: canvas.width - 100, originalY: canvas.height / 2, imageIndex: blueImageIndex++, mass: 2.5 });
+        pieces.push({ x: canvas.width - 300, y: canvas.height * 0.25, vx: 0, vy: 0, radius: radiusPlayer, team: 1, originalX: canvas.width - 300, originalY: canvas.height * 0.25, imageIndex: blueImageIndex++, mass: 2 });
+        pieces.push({ x: canvas.width - 350, y: canvas.height * 0.4,  vx: 0, vy: 0, radius: radiusPlayer, team: 1, originalX: canvas.width - 350, originalY: canvas.height * 0.4, imageIndex: blueImageIndex++, mass: 2 });
+        pieces.push({ x: canvas.width - 350, y: canvas.height * 0.6,  vx: 0, vy: 0, radius: radiusPlayer, team: 1, originalX: canvas.width - 350, originalY: canvas.height * 0.6, imageIndex: blueImageIndex++, mass: 2 });
+        pieces.push({ x: canvas.width - 300, y: canvas.height * 0.75, vx: 0, vy: 0, radius: radiusPlayer, team: 1, originalX: canvas.width - 300, originalY: canvas.height * 0.75, imageIndex: blueImageIndex++, mass: 2 });
+        pieces.push({ x: canvas.width - 550, y: canvas.height * 0.2,  vx: 0, vy: 0, radius: radiusPlayer, team: 1, originalX: canvas.width - 550, originalY: canvas.height * 0.2, imageIndex: blueImageIndex++, mass: 2 });
+        pieces.push({ x: canvas.width - 550, y: canvas.height * 0.4,  vx: 0, vy: 0, radius: radiusPlayer, team: 1, originalX: canvas.width - 550, originalY: canvas.height * 0.4, imageIndex: blueImageIndex++, mass: 2 });
+        pieces.push({ x: canvas.width - 550, y: canvas.height * 0.6,  vx: 0, vy: 0, radius: radiusPlayer, team: 1, originalX: canvas.width - 550, originalY: canvas.height * 0.6, imageIndex: blueImageIndex++, mass: 2 });
+        pieces.push({ x: canvas.width - 550, y: canvas.height * 0.8,  vx: 0, vy: 0, radius: radiusPlayer, team: 1, originalX: canvas.width - 550, originalY: canvas.height * 0.8, imageIndex: blueImageIndex++, mass: 2 });
+        pieces.push({ x: canvas.width - 750, y: canvas.height * 0.45, vx: 0, vy: 0, radius: radiusPlayer, team: 1, originalX: canvas.width - 750, originalY: canvas.height * 0.45, imageIndex: blueImageIndex++, mass: 2 });
+        pieces.push({ x: canvas.width - 750, y: canvas.height * 0.55, vx: 0, vy: 0, radius: radiusPlayer, team: 1, originalX: canvas.width - 750, originalY: canvas.height * 0.55, imageIndex: blueImageIndex++, mass: 2 });
+
+        resetBall();
+        gameStarted = false;
+        allPiecesStopped = true;
+        turnChangeSent = true;
+
+        if (lastGoalScorer === null) {
+            currentPlayerTurn = 0;
+        } else {
+            if (lastGoalScorer === 0) {
+                currentPlayerTurn = 1;
+            } else {
+                currentPlayerTurn = 0;
+            }
+        }
+    }
+
+    function getMousePos(canvas, evt) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        return {
+            x: (evt.clientX - rect.left) * scaleX,
+            y: (evt.clientY - rect.top) * scaleY
+        };
+    }
+
+    let dragging = false;
+    let dragStart = null;
+    let selected = null;
+    let dragVector = null;
+
+    canvas.addEventListener('pointerdown', e => {
+        if (!gameStarted || dragging) return;
+        const myTeam = isHost ? 0 : 1;
+        if (gameMode === 'turn-based') {
+            if (currentPlayerTurn !== myTeam || turnTime <= 0 || !allPiecesStopped) return;
+        }
+        const pos = getMousePos(canvas, e);
+        for (let p of pieces) {
+            if (Math.hypot(p.x - pos.x, p.y - pos.y) < p.radius && p.team === myTeam) {
+                dragging = true;
+                dragStart = { x: pos.x, y: pos.y };
+                selected = p;
+                break;
+            }
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === ' ' && dragging) {
+            cancelAiming();
+        }
+    });
+
+    document.addEventListener('pointermove', e => {
+        if (!dragging || !selected) return;
+        const pos = getMousePos(canvas, e);
+        let dx = dragStart.x - pos.x;
+        let dy = dragStart.y - pos.y;
+        const len = Math.hypot(dx, dy);
+        if (len > maxDrag) { dx = dx / len * maxDrag; dy = dy / len * maxDrag; }
+        dragVector = { dx, dy };
+    });
+
+    document.addEventListener('pointerup', e => {
+        if (!dragging || !selected) return;
+        
+        turnChangeSent = false;
+        const powerMultiplier = 0.66;
+
+        if (isHost) {
+            const vx = dragVector.dx * powerMultiplier;
+            const vy = dragVector.dy * powerMultiplier;
+            selected.vx = vx;
+            selected.vy = vy;
+            allPiecesStopped = false;
+
+        } else {
+
+            sendData({
+                type: 'player_input',
+                pieceIndex: pieces.indexOf(selected),
+                dragVector: dragVector
+            });
+            
+            allPiecesStopped = false;
+        }
+        
+        dragging = false; dragStart = null; selected = null; dragVector = null;
+    });
+
+    function handleGoal(scoringTeam) {
+        if (!isHost) return;
+        let isGameOver = false;
+        let winner = '';
+        if (scoringTeam === 1) { scoreBlue++; lastGoalScorer = 1; if (scoreBlue >= maxGoals) { isGameOver = true; winner = "Blue Team"; }
+        } else { scoreRed++; lastGoalScorer = 0; if (scoreRed >= maxGoals) { isGameOver = true; winner = "Red Team"; } }
+        const goalData = { type: 'goal', score: { red: scoreRed, blue: scoreBlue }, lastScorer: lastGoalScorer, isGameOver: isGameOver, winner: winner };
+        sendData(goalData);
+        handleReceivedData(goalData);
+    }
+
+    playAgainButton.addEventListener('click', () => {
+        if (!isHost) {
+            alert("Only host can do this");
+            return;
+        }
+        const playAgainData = { type: 'play_again' };
+        sendData(playAgainData);
+        handleReceivedData(playAgainData);
+    });
+
+    function resetBall() { ball.x = canvas.width / 2; ball.y = canvas.height / 2; ball.vx = 0; ball.vy = 0; ball.angle = 0; ball.angularVelocity = 0; ballShadows = []; }
+
+    function startGameCountdown() { 
+
+        backgroundMusic.currentTime = 0;
+        backgroundMusic.play().catch(error => console.log("A reprodução automática foi bloqueada pelo navegador.", error));
+
+        gameStarted = false; 
+        countdownValue = 5; 
+        showCountdown = true; 
+        countdownScale = 1; 
+        if (gameMode === 'turn-based') turnIndicator.classList.remove('active'); 
+        if (countdownInterval) clearInterval(countdownInterval); 
+        countdownInterval = setInterval(() => { 
+            countdownValue--; 
+            if (countdownValue > 0) { 
+                countdownScale = 1.5; 
+            } else if (countdownValue === 0) { 
+                countdownScale = 1.5; 
+            } else { 
+                clearInterval(countdownInterval); 
+                showCountdown = false; 
+                gameStarted = true; 
+                if (gameMode === 'turn-based') startTurnTimer(); 
+            } 
+        }, 1000); 
+    }
+
+    function showGoalAnimation() {
+        goalDisplay.style.opacity = 1;
+        setTimeout(() => {
+            goalDisplay.style.opacity = 0;
+        }, 1000);
+    }
+
+    function showVictoryScreen(winningTeam) {
+        victoryMessage.textContent = `${winningTeam} Wins!`;
+        victoryMessage.className = winningTeam === 'Red Team'
+            ? 'victory-message red-team-winner'
+            : 'victory-message blue-team-winner';
+
+        victoryScreen.classList.add('active');
+    }
+
+    function hideVictoryScreen() {
+        victoryScreen.classList.remove('active');
+    }
+
+    function cancelAiming() {
+        dragging = false;
+        dragStart = null;
+        selected = null;
+        dragVector = null;
+    }
+
+    function resolveCollision(p1, p2) {
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const dist = Math.hypot(dx, dy);
+        const minDist = p1.radius + p2.radius;
+
+        if (dist === 0 || dist >= minDist) return;
+
+        const overlap = minDist - dist;
+        const nx = dx / dist;
+        const ny = dy / dist;
+
+        p1.x -= (nx * overlap) / 2;
+        p1.y -= (ny * overlap) / 2;
+        p2.x += (nx * overlap) / 2;
+        p2.y += (ny * overlap) / 2;
+
+        const restitution = 0.8;
+        const v1 = { x: p1.vx, y: p1.vy };
+        const v2 = { x: p2.vx, y: p2.vy };
+        const m1 = p1.mass || 1;
+        const m2 = p2.mass || 1;
+
+        const normal = { x: nx, y: ny };
+        const tangent = { x: -ny, y: nx };
+
+        const v1n = v1.x * normal.x + v1.y * normal.y;
+        const v1t = v1.x * tangent.x + v1.y * tangent.y;
+        const v2n = v2.x * normal.x + v2.y * normal.y;
+        const v2t = v2.x * tangent.x + v2.y * tangent.y;
+
+        const v1nAfter = ((v1n * (m1 - m2) + 2 * m2 * v2n) / (m1 + m2)) * restitution;
+        const v2nAfter = ((v2n * (m2 - m1) + 2 * m1 * v1n) / (m1 + m2)) * restitution;
+
+        p1.vx = v1t * tangent.x + v1nAfter * normal.x;
+        p1.vy = v1t * tangent.y + v1nAfter * normal.y;
+        p2.vx = v2t * tangent.x + v2nAfter * normal.x;
+        p2.vy = v2t * tangent.y + v2nAfter * normal.y;
+
+        if (p1 === ball || p2 === ball) {
+            let ballP = p1 === ball ? p1 : p2;
+            const relativeTangentVel = v2t - v1t;
+            const spinImpulse = relativeTangentVel * 0.08;
+
+            ballP.angularVelocity += spinImpulse;
+            ballP.angularVelocity = Math.max(-0.5, Math.min(0.5, ballP.angularVelocity));
+
+            clickSound.currentTime = 0;
+            clickSound.play();
+            
+            if (isHost) {
+                sendData({ type: 'play_sound', sound: 'collision' });
+            }
+        }
+    }
+
+    function checkCollisions() {
+        for (let i = 0; i < pieces.length; i++) {
+            resolveCollision(pieces[i], ball);
+            for (let j = i + 1; j < pieces.length; j++) {
+                resolveCollision(pieces[i], pieces[j]);
+            }
+        }
+    }
+
+    function updateScoreDisplay() {
+        scoreDisplay.textContent = `${scoreRed} - ${scoreBlue}`;
+    }
+
+    function setupRealTimeIndicator() {
+        const myTeam = isHost ? 0 : 1;
+
+        if (myTeam === 0) {
+            turnText.textContent = "YOU ARE RED";
+            turnIndicator.classList.remove('blue');
+            turnIndicator.style.setProperty('--turn-color', '#ff4444');
+        } else {
+            turnText.textContent = "YOU ARE BLUE";
+            turnIndicator.classList.add('blue');
+            turnIndicator.style.setProperty('--turn-color', '#44ffff');
+        }
+
+        timerBar.style.display = 'none';
+
+        turnIndicator.classList.add('active');
+        turnIndicator.style.opacity = '0.5';
+    }
+    function startTurnTimer() { if (gameMode !== 'turn-based') return; turnTimeStart = performance.now(); updateTurnIndicator(); if (gameStarted) { turnIndicator.classList.add('active'); } }
+    function updateTurnIndicator() {
+
+        turnIndicator.style.opacity = '1';
+        timerBar.style.display = 'block';
+
+        const myTeam = isHost ? 0 : 1;
+        if (currentPlayerTurn === 0) {
+            turnIndicator.classList.remove('blue');
+            turnIndicator.style.setProperty('--turn-color', '#ff4444');
+            turnText.textContent = (myTeam === 0) ? "YOUR TURN" : "OPPONENTS'S TURN";
+        } else {
+            turnIndicator.classList.add('blue');
+            turnIndicator.style.setProperty('--turn-color', '#44ffff');
+            turnText.textContent = (myTeam === 1) ? "YOUR TURN" : "OPPONENTS'S TURN";
+        }
+    }
+
+    function update() {
+        rgbHue = (rgbHue + colorChangeSpeed) % 360;
+
+        if (gameStarted) {
+            if (gameMode === 'turn-based') { 
+                const elapsedTime = (performance.now() - turnTimeStart) / 1000; 
+                turnTime = maxTurnTime - elapsedTime; 
+                timerBar.style.width = `${Math.max(0, (turnTime / maxTurnTime) * 100)}%`; 
+            }
+
+            if (isHost) {
+
+                if (gameMode === 'turn-based') {
+                    if (turnTime <= 0 && allPiecesStopped) {
+                        turnTime = 0; 
+                        const nextTurn = currentPlayerTurn === 0 ? 1 : 0; 
+                        const timeoutData = { type: 'timeout', nextTurn: nextTurn }; 
+                        sendData(timeoutData); 
+                        handleReceivedData(timeoutData); 
+                    } 
+                }
+
+                let stoppedCheck = true;
+                for (let p of [...pieces, ball]) {
+                    const speed = Math.hypot(p.vx, p.vy);
+                    if (p === ball) { p.angle += p.angularVelocity; p.angularVelocity *= 0.98; if (Math.abs(p.angularVelocity) < 0.001) p.angularVelocity = 0; p.vx *= 0.94; p.vy *= 0.94; if (speed > 0.1) { ballShadows.push({ x: p.x, y: p.y, life: 1.0 }); if (ballShadows.length > maxBallShadows) ballShadows.shift(); }
+                    } else { p.vx *= friction; p.vy *= friction; }
+                    if (speed > 0.1) { stoppedCheck = false; if (p !== ball) shadows.push({ x: p.x, y: p.y, radius: p.radius, color: (p.team === 0 ? 'red' : 'blue'), life: 0.5 }); p.x += p.vx; p.y += p.vy; const inGoalArea = p.y > (canvas.height / 2 - goalHeight / 2) && p.y < (canvas.height / 2 + goalHeight / 2); if (p.x - p.radius < wallThickness && (p === ball ? !inGoalArea : true)) { p.x = p.radius + wallThickness; p.vx *= -0.7; } if (p.x + p.radius > canvas.width - wallThickness && (p === ball ? !inGoalArea : true)) { p.x = canvas.width - p.radius - wallThickness; p.vx *= -0.7; } if (p.y - p.radius < wallThickness) { p.y = p.radius + wallThickness; p.vy *= -0.7; } if (p.y + p.radius > canvas.height - wallThickness) { p.y = canvas.height - p.radius - wallThickness; p.vy *= -0.7; }
+                    } else { p.vx = 0; p.vy = 0; }
+                }
+                
+                allPiecesStopped = stoppedCheck;
+
+                if (allPiecesStopped && gameMode === 'turn-based' && !turnChangeSent) {
+                    const nextTurn = currentPlayerTurn === 0 ? 1 : 0;
+                    const moveData = { type: 'turn_change', nextTurn: nextTurn };
+                    sendData(moveData);
+                    handleReceivedData(moveData);
+                    turnChangeSent = true;
+                }
+                
+                checkCollisions();
+                const goalTop = canvas.height / 2 - goalHeight / 2;
+                const goalBottom = canvas.height / 2 + goalHeight / 2;
+                if (ball.x - ball.radius < wallThickness + goalWidth && ball.y > goalTop && ball.y < goalBottom) { handleGoal(1); }
+                else if (ball.x + ball.radius > canvas.width - wallThickness - goalWidth && ball.y > goalTop && ball.y < goalBottom) { handleGoal(0); }
+
+                for (let s of shadows) s.life -= 0.016;
+                while (shadows.length > 0 && shadows[0].life <= 0) shadows.shift();
+                for (let s of ballShadows) s.life -= 0.03;
+                while (ballShadows.length > 0 && ballShadows[0].life <= 0) ballShadows.shift();
+            
+            } else {
+                const interpolationFactor = 0.25;
+                for (let p of pieces) {
+                    if (p.targetX !== undefined) {
+                        p.x += (p.targetX - p.x) * interpolationFactor;
+                        p.y += (p.targetY - p.y) * interpolationFactor;
+                    }
+                }
+                if (ball.targetX !== undefined) {
+                    ball.x += (ball.targetX - ball.x) * interpolationFactor;
+                    ball.y += (ball.targetY - ball.y) * interpolationFactor;
+                    let angleDiff = ball.targetAngle - ball.angle;
+                    while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+                    while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+                    ball.angle += angleDiff * interpolationFactor;
+                }
+            }
+        }
+
+        if (showCountdown && countdownScale > 1) { countdownScale -= 0.05; }
+        if (goalGlow.active) { goalGlow.alpha -= 0.02; if (goalGlow.alpha <= 0) { goalGlow.active = false; goalGlow.alpha = 0; } }
+        if (fieldGlow.active) { fieldGlow.alpha -= 0.02; if (fieldGlow.alpha <= 0) { fieldGlow.active = false; fieldGlow.alpha = 0; } }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (fieldGlow.active) {
+            ctx.save();
+            ctx.shadowBlur = 100;
+            ctx.shadowColor = `rgba(138, 43, 226, ${fieldGlow.alpha})`;
+            ctx.strokeStyle = `rgba(138, 43, 226, ${fieldGlow.alpha})`;
+            ctx.lineWidth = 112.455;
+            ctx.beginPath();
+            ctx.roundRect(
+                wallThickness,
+                wallThickness,
+                canvas.width - wallThickness * 2,
+                canvas.height - wallThickness * 2,
+                20
+            );
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        ctx.fillStyle = '#2c2c2e';
+        ctx.fillRect(0, 0, canvas.width, wallThickness);
+        ctx.fillRect(0, canvas.height - wallThickness, canvas.width, wallThickness);
+        ctx.fillRect(0, 0, wallThickness, canvas.height / 2 - goalHeight / 2);
+        ctx.fillRect(0, canvas.height / 2 + goalHeight / 2, wallThickness, canvas.height / 2 - goalHeight / 2);
+        ctx.fillRect(canvas.width - wallThickness, 0, wallThickness, canvas.height / 2 - goalHeight / 2);
+        ctx.fillRect(
+            canvas.width - wallThickness,
+            canvas.height / 2 + goalHeight / 2,
+            wallThickness,
+            canvas.height / 2 - goalHeight / 2
+        );
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, wallThickness);
+        ctx.lineTo(canvas.width / 2, canvas.height - wallThickness);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, 100, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, 8, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+
+        const penaltyAreaWidth = 200;
+        const penaltyAreaHeight = 500;
+        ctx.strokeRect(wallThickness, canvas.height / 2 - penaltyAreaHeight / 2, penaltyAreaWidth, penaltyAreaHeight);
+        ctx.strokeRect(
+            canvas.width - wallThickness - penaltyAreaWidth,
+            canvas.height / 2 - penaltyAreaHeight / 2,
+            penaltyAreaWidth,
+            penaltyAreaHeight
+        );
+
+        const smallAreaWidth = 100;
+        const smallAreaHeight = 250;
+        ctx.strokeRect(wallThickness, canvas.height / 2 - smallAreaHeight / 2, smallAreaWidth, smallAreaHeight);
+        ctx.strokeRect(
+            canvas.width - wallThickness - smallAreaWidth,
+            canvas.height / 2 - smallAreaHeight / 2,
+            smallAreaWidth,
+            smallAreaHeight
+        );
+
+        ctx.beginPath();
+        ctx.arc(wallThickness + penaltyAreaWidth * 0.7, canvas.height / 2, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(canvas.width - wallThickness - penaltyAreaWidth * 0.7, canvas.height / 2, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(wallThickness + penaltyAreaWidth * 0.7, canvas.height / 2, 100, Math.PI * 0.7, Math.PI * 1.3);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(canvas.width - wallThickness - penaltyAreaWidth * 0.7, canvas.height / 2, 100, Math.PI * -0.3, Math.PI * 0.3);
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(150, 0, 255, 0.3)';
+        ctx.fillRect(wallThickness, canvas.height / 2 - goalHeight / 2, goalWidth, goalHeight);
+        ctx.fillRect(canvas.width - wallThickness - goalWidth, canvas.height / 2 - goalHeight / 2, goalWidth, goalHeight);
+
+        ctx.strokeStyle = '#cccccc';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(wallThickness + goalWidth, canvas.height / 2 - goalHeight / 2);
+        ctx.lineTo(wallThickness + goalWidth + 20, canvas.height / 2 - goalHeight / 2 - 20);
+        ctx.lineTo(wallThickness + goalWidth + 20, canvas.height / 2 + goalHeight / 2 + 20);
+        ctx.lineTo(wallThickness + goalWidth, canvas.height / 2 + goalHeight / 2);
+        ctx.closePath();
+        ctx.stroke();
+
+        for (let i = 0; i < 5; i++) {
+            ctx.beginPath();
+            ctx.moveTo(wallThickness + goalWidth, canvas.height / 2 - goalHeight / 2 + (goalHeight / 4) * i);
+            ctx.lineTo(
+                wallThickness + goalWidth + 20,
+                canvas.height / 2 - goalHeight / 2 + (goalHeight / 4) * i - (20 * (i / 4))
+            );
+            ctx.stroke();
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(canvas.width - wallThickness - goalWidth, canvas.height / 2 - goalHeight / 2);
+        ctx.lineTo(canvas.width - wallThickness - goalWidth - 20, canvas.height / 2 - goalHeight / 2 - 20);
+        ctx.lineTo(canvas.width - wallThickness - goalWidth - 20, canvas.height / 2 + goalHeight / 2 + 20);
+        ctx.lineTo(canvas.width - wallThickness - goalWidth, canvas.height / 2 + goalHeight / 2);
+        ctx.closePath();
+        ctx.stroke();
+
+        for (let i = 0; i < 5; i++) {
+            ctx.beginPath();
+            ctx.moveTo(canvas.width - wallThickness - goalWidth, canvas.height / 2 - goalHeight / 2 + (goalHeight / 4) * i);
+            ctx.lineTo(
+                canvas.width - wallThickness - goalWidth - 20,
+                canvas.height / 2 - goalHeight / 2 + (goalHeight / 4) * i - (20 * (i / 4))
+            );
+            ctx.stroke();
+        }
+
+        ctx.lineWidth = 4;
+        const flagSize = 30;
+        const flagColor = '#8a2be2';
+        ctx.fillStyle = flagColor;
+
+        const flags = [
+            [wallThickness, wallThickness, wallThickness + flagSize, wallThickness, wallThickness, wallThickness + flagSize],
+            [
+                canvas.width - wallThickness,
+                wallThickness,
+                canvas.width - wallThickness - flagSize,
+                wallThickness,
+                canvas.width - wallThickness,
+                wallThickness + flagSize
+            ],
+            [
+                wallThickness,
+                canvas.height - wallThickness,
+                wallThickness + flagSize,
+                canvas.height - wallThickness,
+                wallThickness,
+                canvas.height - wallThickness - flagSize
+            ],
+            [
+                canvas.width - wallThickness,
+                canvas.height - wallThickness,
+                canvas.width - wallThickness - flagSize,
+                canvas.height - wallThickness,
+                canvas.width - wallThickness,
+                canvas.height - wallThickness - flagSize
+            ]
+        ];
+
+        for (let f of flags) {
+            ctx.beginPath();
+            ctx.moveTo(f[0], f[1]);
+            ctx.lineTo(f[2], f[3]);
+            ctx.lineTo(f[4], f[5]);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        if (logo.complete) {
+            const logoScale = 1.4;
+            const logoWidth = 300 * logoScale;
+            const logoHeight = logoWidth * (logo.height / logo.width);
+            ctx.globalAlpha = 0.8;
+            ctx.drawImage(
+                logo,
+                canvas.width / 2 - logoWidth / 2,
+                canvas.height / 2 - logoHeight / 2,
+                logoWidth,
+                logoHeight
+            );
+            ctx.globalAlpha = 1.0;
+        }
+
+        if (goalGlow.active) {
+            ctx.globalAlpha = goalGlow.alpha;
+            let gradient;
+            if (goalGlow.team === 1) {
+                gradient = ctx.createLinearGradient(wallThickness, 0, wallThickness + goalWidth, 0);
+            } else {
+                gradient = ctx.createLinearGradient(
+                    canvas.width - wallThickness - goalWidth,
+                    0,
+                    canvas.width - wallThickness,
+                    0
+                );
+            }
+            gradient.addColorStop(0, 'rgba(138, 43, 226, 0.2)');
+            gradient.addColorStop(0.5, 'rgba(138, 43, 226, 0.8)');
+            gradient.addColorStop(1, 'rgba(138, 43, 226, 0.2)');
+            ctx.fillStyle = gradient;
+            if (goalGlow.team === 1) {
+                ctx.fillRect(wallThickness, canvas.height / 2 - goalHeight / 2, goalWidth, goalHeight);
+            } else {
+                ctx.fillRect(canvas.width - wallThickness - goalWidth, canvas.height / 2 - goalHeight / 2, goalWidth, goalHeight);
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        if (ballShadows.length > 0) {
+            ctx.save();
+            const initialHue = (rgbHue + 180) % 360;
+            for (let i = ballShadows.length - 1; i >= 0; i--) {
+                const shadow = ballShadows[i];
+                const opacity = shadow.life * 0.6;
+                const size = ball.radius * (i / ballShadows.length + 0.12);
+                const currentHue = (initialHue + i * 10) % 360;
+                ctx.shadowColor = `hsl(${currentHue}, 100%, 50%)`;
+                ctx.shadowBlur = 30;
+                ctx.globalAlpha = opacity;
+                ctx.beginPath();
+                ctx.arc(shadow.x, shadow.y, size, 0, Math.PI * 2);
+                ctx.fillStyle = `hsl(${currentHue}, 100%, 42%)`;
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        for (let s of shadows) {
+            ctx.globalAlpha = s.life;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+            ctx.fillStyle = s.color;
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+        }
+
+        for (const p of pieces) {
+            const img = p.team === 0 ? redPlayerImageObjects[p.imageIndex] : bluePlayerImageObjects[p.imageIndex];
+            ctx.lineWidth = 5;
+            ctx.shadowBlur = 10;
+            const myTeam = isHost ? 0 : 1;
+
+            if (
+                gameMode === 'turn-based' &&
+                gameStarted &&
+                p.team === currentPlayerTurn &&
+                allPiecesStopped &&
+                currentPlayerTurn === myTeam
+            ) {
+                ctx.shadowBlur = 20;
+                if (p.team === 0) {
+                    ctx.strokeStyle = '#ff4444';
+                    ctx.shadowColor = '#ff4444';
+                } else {
+                    ctx.strokeStyle = '#44ffff';
+                    ctx.shadowColor = '#44ffff';
+                }
+            } else {
+                if (p.team === 0) {
+                    ctx.strokeStyle = '#ff0000';
+                    ctx.shadowColor = '#ff0000';
+                } else {
+                    ctx.strokeStyle = '#00ffff';
+                    ctx.shadowColor = '#00ffff';
+                }
+            }
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            if (img && img.complete) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2, true);
+                ctx.clip();
+                ctx.drawImage(img, p.x - p.radius, p.y - p.radius, p.radius * 2, p.radius * 2);
+                ctx.restore();
+            }
+        }
+
+        ctx.save();
+        ctx.shadowBlur = 60;
+        ctx.shadowColor = `hsl(${rgbHue}, 100%, 60%)`;
+
+        if (soccerBallImage && soccerBallImage.complete) {
+            ctx.save();
+            ctx.translate(ball.x, ball.y);
+            ctx.rotate(ball.angle);
+            ctx.drawImage(soccerBallImage, -ball.radius, -ball.radius, ball.radius * 2, ball.radius * 2);
+            ctx.restore();
+        } else {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = ball.color;
+            ctx.fill();
+        }
+        ctx.restore(); 
+
+        if (showCountdown) {
+            let text = countdownValue > 0 ? countdownValue : 'GO!';
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.scale(countdownScale, countdownScale);
+            ctx.fillStyle = 'white';
+            ctx.font = '700 120px "Inter"';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, 0, 0);
+            ctx.restore();
+        }
+
+        if (dragging && selected && dragVector) {
+            const { dx, dy } = dragVector;
+            const len = Math.hypot(dx, dy);
+            if (len > 0) {
+                const unitX = dx / len;
+                const unitY = dy / len;
+                const lineLen = Math.min(len, maxDrag) * 1.5;
+                const arrowOffset = 15;
+                const endLineX = selected.x + unitX * lineLen;
+                const endLineY = selected.y + unitY * lineLen;
+                const arrowTipX = selected.x + unitX * (lineLen + arrowOffset);
+                const arrowTipY = selected.y + unitY * (lineLen + arrowOffset);
+
+                ctx.strokeStyle = `hsl(${rgbHue}, 100%, 70%)`;
+                ctx.lineWidth = 12;
+                ctx.lineCap = 'round';
+                ctx.shadowBlur = 25;
+                ctx.shadowColor = `hsl(${rgbHue}, 100%, 60%)`;
+                ctx.beginPath();
+                ctx.moveTo(selected.x, selected.y);
+                ctx.lineTo(endLineX, endLineY);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                const arrowSize = 35;
+                ctx.beginPath();
+                ctx.moveTo(arrowTipX, arrowTipY);
+                ctx.lineTo(
+                    arrowTipX - unitX * arrowSize - unitY * arrowSize * 0.4,
+                    arrowTipY - unitY * arrowSize + unitX * arrowSize * 0.4
+                );
+                ctx.lineTo(
+                    arrowTipX - unitX * arrowSize + unitY * arrowSize * 0.4,
+                    arrowTipY - unitY * arrowSize - unitX * arrowSize * 0.4
+                );
+                ctx.closePath();
+                ctx.fillStyle = `hsl(${rgbHue}, 100%, 70%)`;
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                ctx.lineCap = 'butt';
+            }
+        }
+    }
+
+    function loop() {
+        update();
+        draw();
+        requestAnimationFrame(loop);
+    }
+
+    updateScoreDisplay();
+    generateAnimatedBalls();
+
+    const soundToggleBtn = document.getElementById('sound-toggle-btn');
+
+        soundToggleBtn.addEventListener('click', () => {
+
+            isMuted = !isMuted;
+
+            backgroundMusic.muted = isMuted;
+            goalSound.muted = isMuted;
+            clickSound.muted = isMuted;
+
+            soundToggleBtn.classList.toggle('sound-off', isMuted);
+        });
+
+    startGameBtn.addEventListener('click', () => {
+    gameMode = realTimeModeCheckbox.checked ? 'real-time' : 'turn-based';
+
+    const goalsToWin = parseInt(document.getElementById('goals-to-win-input').value, 10) || 5;
+    maxGoals = goalsToWin;
+
+    sendData({ type: 'start_signal', mode: gameMode, goals: goalsToWin });
+    startGame();
+});
+
+});
+    </script>
+</body>
+</html>
